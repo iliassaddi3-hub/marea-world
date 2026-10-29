@@ -1,18 +1,11 @@
-/* ═══════════════════════════════════════════════════════════════════
-   MAREA WORLD — interactions
-   Content (tracks, lyrics, credits, settings) lives in js/data.js.
-   ═══════════════════════════════════════════════════════════════════ */
 const DATA = window.MAREA_DATA || { site: {}, beforeMarea: [], marea: { tracks: [] }, credits: [] };
 const SITE = DATA.site || {};
 const SHOW_PH = !!SITE.showPlaceholders;
 const BEFORE = DATA.beforeMarea || [];
 const ALBUM = (DATA.marea && DATA.marea.tracks) || [];
-// The Before Marea track that carries synced lyrics drives the page's player (MERRA FL3AM)
 const hasLyrics = t => !!(t && t.lyrics && t.lyrics.length);
 const LEAD = BEFORE.find(t => t && t.lead) || BEFORE.find(hasLyrics) || null;
-// '01:04.975' → 64.975 seconds (plain numbers and hh:mm:ss.mmm work too)
 const toSec = v => typeof v === 'number' ? v : String(v).trim().split(':').reduce((acc, n) => acc * 60 + Number(n), 0);
-// Video id from any YouTube URL form (watch?v=, youtu.be/, /embed/, /shorts/); the original URL is still what visitors open
 function ytId(url) {
   if (!url) return null;
   try {
@@ -24,7 +17,6 @@ function ytId(url) {
   } catch (e) { return /^[\w-]{11}$/.test(url) ? url : null; }
 }
 
-/* ═══ HELPERS ═══ */
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const root = document.documentElement;
@@ -35,16 +27,13 @@ let reduced = mqReduce.matches;
 const FINE = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const SMALL = () => innerWidth <= 760;
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
-const ticks = new Set();           // per-frame callbacks, all driven by one rAF
+const ticks = new Set();
 const imgReady = img => new Promise(res => {
   if (!img || img.complete) return res();
   img.addEventListener('load', res, { once: true });
   img.addEventListener('error', res, { once: true });
 });
 
-/* ═══ MOODS — each track tunes the sea ═══
-   deep/crest/light: water colours · amp: swell · speed: tempo · chop: small waves
-   fog: visibility · lx: where the light path falls (-1 left … 1 right) · city: horizon lights */
 const MOODS = {
   night: { deep:'#0b1a2e', crest:'#7b95b3', light:'#ebba69', sky:'#0e2036', amp:1.00, speed:1.00, chop:.25, fog:1.00, lx: .42, city:1.0 },
   crest: { deep:'#2a0d17', crest:'#a7646d', light:'#f0c46a', sky:'#2a0f1a', amp:.85,  speed:.80,  chop:.20, fog:.90,  lx:-.18, city:1.3 },
@@ -55,18 +44,16 @@ const MOODS = {
   ember: { deep:'#1f0b10', crest:'#c0646a', light:'#ffd2a1', sky:'#2a0f15', amp:1.15, speed:1.60, chop:.80, fog:.85,  lx: .22, city:1.1 },
   sage:  { deep:'#0c1b1e', crest:'#8fa8a0', light:'#e3ece6', sky:'#10242a', amp:.85,  speed:.70,  chop:.20, fog:.75,  lx:-.40, city:.6 },
   swell: { deep:'#06192d', crest:'#5ea2d6', light:'#f4e3b6', sky:'#0a2440', amp:1.55, speed:1.10, chop:.35, fog:1.00, lx: .12, city:1.0 },
-  before:{ deep:'#0d1013', crest:'#9aa3ad', light:'#e9e6df', sky:'#13171c', amp:.42,  speed:.60,  chop:.12, fog:.70,  lx:-.35, city:.75 }, // silver, near-still
-  harbor:{ deep:'#0a1626', crest:'#7a92ae', light:'#f0c87a', sky:'#0f1f33', amp:.60,  speed:.70,  chop:.15, fog:1.00, lx: .10, city:1.6 },  // arriving at the city
+  before:{ deep:'#0d1013', crest:'#9aa3ad', light:'#e9e6df', sky:'#13171c', amp:.42,  speed:.60,  chop:.12, fog:.70,  lx:-.35, city:.75 },
+  harbor:{ deep:'#0a1626', crest:'#7a92ae', light:'#f0c87a', sky:'#0f1f33', amp:.60,  speed:.70,  chop:.15, fog:1.00, lx: .10, city:1.6 }, 
 };
 const toState = m => ({ deep: hex(m.deep), crest: hex(m.crest), light: hex(m.light), sky: hex(m.sky),
   amp: m.amp, speed: m.speed, chop: m.chop, fog: m.fog, lx: m.lx, city: m.city });
 
-/* ═══ CONTENT — rendered from js/data.js ═══ */
 const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const ph = text => SHOW_PH ? `<span class="ph">${esc(text)}</span>` : '';
 const pad2 = n => String(n).padStart(2, '0');
 
-/* Placeholder artwork: a coastal depth chart, unique to each title */
 function tideChart(seedText) {
   let h = 2166136261;
   for (const c of seedText) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
@@ -90,8 +77,6 @@ function tideChart(seedText) {
   return `<svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><g fill="none" stroke="#c4c9cf" stroke-width="1.1">${paths}</g><line x1="0" y1="336" x2="400" y2="336" stroke="#c4c9cf" stroke-opacity=".22"/></svg>`;
 }
 
-/* ═══ COVERS — if a path doesn't load, try the usual filename slips before giving up ═══
-   (Windows hides extensions, so "Maalich cover.jpg" is often really "Maalich cover.jpg.jpg", or a .jpeg/.png) */
 const coverTag = (src, title, alt, extra = '') =>
   `<img src="${esc(src)}" alt="${esc(alt || title + ' cover')}" data-cover="${esc(src)}" data-title="${esc(title)}" ${extra}>`;
 function coverCandidates(src) {
@@ -161,7 +146,6 @@ document.addEventListener('load', e => {
 const fallbackLink = $('#vidFallbackLink');
 if (fallbackLink && LEAD && LEAD.youtube) fallbackLink.href = LEAD.youtube;
 
-/* ═══ GRAIN — one noise tile, moved in steps by CSS ═══ */
 (() => {
   const el = $('#grain'); if (!el) return;
   const c = document.createElement('canvas'); c.width = c.height = 160;
@@ -175,7 +159,6 @@ if (fallbackLink && LEAD && LEAD.youtube) fallbackLink.href = LEAD.youtube;
   el.style.backgroundImage = `url(${c.toDataURL()})`;
 })();
 
-/* ═══ INTRO — fonts + emblem load, then the horizon opens ═══ */
 const Intro = (() => {
   const el = $('#intro');
   let opened = false;
@@ -207,7 +190,6 @@ const Intro = (() => {
   return { onOpen(fn) { opened ? fn() : listeners.push(fn); }, get opened() { return opened; } };
 })();
 
-/* ═══ SEA — WebGL point ocean with city lights on the horizon ═══ */
 const Sea = (() => {
   const canvas = $('#sea'), sky = $('#sky'), mist = $('#mist');
   const cur = toState(MOODS.night);
@@ -317,7 +299,6 @@ const Sea = (() => {
     const water = [];
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) water.push(c / (cols - 1) * 2 - 1, r / (rows - 1), rnd(), 0);
     const city = [];
-    // a coastline of lights: one dense town, a few scattered quarters, a beacon on the point
     const clusters = [[-.58, .26, 46, 1.0], [-.2, .12, 16, .55], [.36, .1, 12, .45], [.7, .06, 7, .35]];
     clusters.forEach(([cx, sp, n, hs]) => {
       for (let i = 0; i < n; i++) {
@@ -369,7 +350,6 @@ const Sea = (() => {
 
   function resize() {
     hz = parseFloat(getComputedStyle(root).getPropertyValue('--hz')) || .47;
-    // pitch the camera so the horizon lands exactly where the CSS puts it
     pitch = Math.atan((1 - 2 * hz) / FY);
     cosP = Math.cos(pitch); sinP = Math.sin(pitch);
     if (!canvas) return;
@@ -379,7 +359,6 @@ const Sea = (() => {
     if (gl) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); gl.viewport(0, 0, canvas.width, canvas.height); }
   }
 
-  // screen → water plane (camera frame)
   function toWater(cx, cy) {
     const w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight;
     const nx = cx / w * 2 - 1, ny = 1 - cy / h * 2;
@@ -433,7 +412,6 @@ const Sea = (() => {
   let T = 0, last = performance.now(), lastScroll = -1, dirty = true;
   ticks.add(now => {
     const dt = Math.min(.05, (now - last) / 1000); last = now;
-    // ease every mood value toward its target
     if (moving) {
       const k = 1 - Math.exp(-dt * 1.7);
       let delta = 0;
@@ -460,7 +438,6 @@ const Sea = (() => {
   addEventListener('resize', () => { resize(); dirty = true; });
   resize(); paintSky();
 
-  // pointer = a lantern over the water; tap/click = a ripple
   if (FINE) {
     addEventListener('pointermove', e => {
       const w = toWater(e.clientX, e.clientY);
@@ -482,7 +459,6 @@ const Sea = (() => {
   };
 })();
 
-/* ═══ WATER REFLECTIONS — rows of the source redrawn with a travelling sway ═══ */
 function Reflection(canvas, opts) {
   const ctx = canvas.getContext('2d');
   let src = null, sw = 0, sh = 0, visible = false, active = false, frame = 0, ready = false;
@@ -510,12 +486,11 @@ function Reflection(canvas, opts) {
   }
   ticks.add(now => {
     if (!active || !visible || reduced) return;
-    if ((frame++ & 1) === 0) render(now / 1000);  // ~30 fps is plenty for water
+    if ((frame++ & 1) === 0) render(now / 1000);
   });
   return { prepare, start() { active = true; }, render };
 }
 
-/* Title reflection */
 const titleReflect = (() => {
   const canvas = $('#reflect'), title = $('#title');
   if (!canvas || !title) return null;
@@ -536,7 +511,6 @@ const titleReflect = (() => {
       const chs = $$('.ch', title), tb = title.getBoundingClientRect();
       const lastTop = Math.max(...chs.map(c => c.parentNode.offsetTop));
       chs.filter(c => c.parentNode.offsetTop === lastTop).forEach(ch => {
-        // horizontal position only: the intro transforms are vertical, so this stays exact mid-animation
         x.fillText(ch.textContent, (ch.getBoundingClientRect().left - tb.left) * d, src.height - 1);
       });
       canvas.width = src.width; canvas.height = Math.ceil(src.height * .62);
@@ -551,7 +525,6 @@ const titleReflect = (() => {
   return R;
 })();
 
-/* Portrait reflection */
 (() => {
   const canvas = $('#ptReflect'), img = $('#ptImg'), frame = $('.pt-frame');
   if (!canvas || !img || !frame) return;
@@ -570,7 +543,6 @@ const titleReflect = (() => {
   addEventListener('resize', () => requestAnimationFrame(() => R.prepare()));
 })();
 
-/* ═══ COUNTDOWN (target: site.releaseDate in js/data.js) ═══ */
 (() => {
   const rel = new Date(SITE.releaseDate).getTime(), box = $('#cd');
   let id = 0;
@@ -584,11 +556,8 @@ const titleReflect = (() => {
   }
   updCD(); id = setInterval(updCD, 1000);
 })();
-
-/* ═══ SCROLL — hero parallax, nav, statement reveal ═══ */
 (() => {
   const nav = $('#nav'), prog = $('#nprog'), hero = $('#top'), stmt = $('#statement');
-  // split the statement into words (text content stays identical)
   let words = [];
   if (stmt) {
     const txt = stmt.textContent.trim();
@@ -619,14 +588,12 @@ const titleReflect = (() => {
       }
     }
   });
-  // reveals
   const io = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
   }), { threshold: .15, rootMargin: '0px 0px -6% 0px' });
   $$('.rise,.fade').forEach(el => io.observe(el));
 })();
 
-/* ═══ SECTIONS → sea mood + nav state ═══ */
 const Sections = (() => {
   let current = 'top', trackMood = 'crest';
   const moodFor = id => ({ top: 'night', before: 'before', marea: 'night', single: 'before', tracklist: trackMood, artist: 'night', credits: 'harbor', notify: 'harbor' })[id] || 'night';
@@ -642,20 +609,16 @@ const Sections = (() => {
   return { setTrackMood(m) { trackMood = m; if (current === 'tracklist') Sea.setMood(m); } };
 })();
 
-/* ═══ VISUALIZER — a small wave that swells while the song plays ═══ */
 (() => {
   const vz = $('#vz'); if (!vz) return;
   const wave = (amp) => { let d = 'M0 12'; for (let x = 0; x < 360; x += 20) d += ` Q${x + 10} ${12 + (x / 20 % 2 ? amp : -amp)} ${x + 20} 12`; return d; };
   vz.innerHTML = `<svg viewBox="0 0 300 24" preserveAspectRatio="none"><g><path d="${wave(9)}"/><path d="${wave(5)}" transform="translate(-10 0)"/></g></svg>`;
 })();
 
-/* ═══ LYRICS ═══ */
-// LT = the track loaded in the player · D = its lines as [start, text, end] in seconds
 let LT = LEAD, D = [], lineOn = true;
 const ls = document.getElementById('ls');
 function setLyricsTrack(track) {
   LT = track;
-  // accepts [start, text] (MERRA FL3AM) and [start, end, text] (timestamp files)
   D = ((track && track.lyrics) || []).map(r => r.length >= 3 ? [toSec(r[0]), r[2], toSec(r[1])] : [toSec(r[0]), r[1], null])
     .filter(r => !isNaN(r[0]));
   const list = document.createElement('ol');
@@ -666,7 +629,6 @@ function setLyricsTrack(track) {
   });
   ls.replaceChildren(list);
   ls.scrollTop = 0;
-  // the section title follows the loaded track; MERRA FL3AM's own lines only show for MERRA FL3AM
   const title = $('#single-title > span'); if (title && track) title.textContent = track.title;
   [$('#single .kicker'), $('#single .si-badge'), $('#statement')].forEach(el => { if (el) el.hidden = track !== LEAD; });
   if (fallbackLink && track && track.youtube) fallbackLink.href = track.youtube;
@@ -681,7 +643,7 @@ function setLyricsTrack(track) {
   const tt = $('#tt'); tt.dataset.d = ''; tt.textContent = (track && track.duration) || '0:00';
 }
 setLyricsTrack(LEAD);
-let lyricHold = 0;  // pause auto-follow while the listener scrolls the lyrics
+let lyricHold = 0;
 ['wheel', 'touchstart'].forEach(ev => ls.addEventListener(ev, () => { lyricHold = Date.now(); }, { passive: true }));
 ls.addEventListener('click', e => {
   const li = e.target.closest('.ll'); if (!li) return;
@@ -690,7 +652,6 @@ ls.addEventListener('click', e => {
   if (!on) player.playVideo();
 });
 
-/* ═══ YOUTUBE ═══ */
 let player = null, on = false, cur = -1, tid = null, ytR = false, wantPlay = false, seekWhenReady = null;
 const pbtn = $('#pbtn'), bar = $('#barbg'), vid = $('#vid');
 function videoFailed() {
@@ -767,11 +728,9 @@ function rnd() {
   });
   const el = cur >= 0 && document.getElementById('l' + cur);
   if (el && Date.now() - lyricHold > 3500) {
-    // scroll only the lyrics panel, never the page
     ls.scrollTo({ top: el.offsetTop - ls.clientHeight * .38, behavior: reduced ? 'auto' : 'smooth' });
   }
 }
-// seek bar: click, drag, keyboard
 function seekTo(clientX) {
   const r = bar.getBoundingClientRect();
   const f = clamp((clientX - r.left) / r.width, 0, 1);
@@ -799,7 +758,6 @@ function goPlay() {
   document.getElementById('single').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
   setTimeout(() => { if (ytR && !on) player.playVideo(); else if (!ytR) wantPlay = true; }, reduced ? 60 : 800);
 }
-// Load a Before Marea track that has lyrics into the player, then play it
 function playTrack(track) {
   if (track && hasLyrics(track) && track !== LT) {
     setLyricsTrack(track);
@@ -809,13 +767,12 @@ function playTrack(track) {
     pbtn.setAttribute('aria-label', (on ? 'Pause ' : 'Play ') + track.title);
     $$('.bm-card').forEach(c => c.classList.toggle('np', on && BEFORE[+c.dataset.i] === LT));
     const id = ytId(track.youtube);
-    if (ytR && id) player.loadVideoById(id);   // the new video replaces the old one
+    if (ytR && id) player.loadVideoById(id);
   }
   goPlay();
 }
 function fmt(s) { return Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '0' : '') + Math.floor(s % 60); }
 
-/* ═══ ALBUM TRACKLIST — selection drives the stage and the sea ═══ */
 (() => {
   const btns = $$('.ti'), stage = $('#stage'), img = $('#stImg');
   const total = btns.length;
@@ -865,7 +822,6 @@ function fmt(s) { return Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '
   select(0);
   stage.classList.remove('swap');
 
-  // album sleeve: gentle tilt toward the pointer
   const sl = $('#sleeve');
   if (sl && FINE && !reduced) {
     sl.addEventListener('pointermove', e => {
@@ -877,7 +833,6 @@ function fmt(s) { return Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '
   }
 })();
 
-/* ═══ PORTRAIT PARALLAX ═══ */
 (() => {
   const img = $('#ptImg'), fr = $('.pt-frame'); if (!img || !fr || reduced) return;
   let vis = false;
@@ -890,7 +845,6 @@ function fmt(s) { return Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '
   });
 })();
 
-/* ═══ NOTIFY FORM ═══ */
 (() => {
   const form = $('#notiForm'), input = $('#notiEmail'), btn = $('#notiBtn'), msg = $('#notiMsg');
   const say = (t, err) => { msg.textContent = t; msg.classList.toggle('err', !!err); };
@@ -916,10 +870,9 @@ function fmt(s) { return Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '
   });
 })();
 
-/* ═══ DETAIL SHEETS — native <dialog>: focus trap, Esc, focus return ═══ */
 const Sheets = (() => {
   function open(dlg, trigger) {
-    dlg._ticket = (dlg._ticket || 0) + 1;   // reopening cancels a close that is still animating
+    dlg._ticket = (dlg._ticket || 0) + 1;
     dlg._trigger = trigger || document.activeElement;
     dlg.classList.remove('closing');
     root.classList.add('has-sheet');
@@ -930,7 +883,7 @@ const Sheets = (() => {
     if (dlg._onClosing) dlg._onClosing();
     const ticket = dlg._ticket = (dlg._ticket || 0) + 1;
     const done = () => {
-      if (dlg._ticket !== ticket) return;   // the panel was reopened meanwhile
+      if (dlg._ticket !== ticket) return;
       dlg.classList.remove('closing');
       if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open');
       root.classList.remove('has-sheet');
@@ -951,7 +904,6 @@ const Sheets = (() => {
   return { open, close };
 })();
 
-/* ═══ TRACK SHEET — details + embedded YouTube player (Before Marea and album) ═══ */
 const TrackSheet = (() => {
   const dlg = $('#trackSheet'), body = $('#tsBody');
   const LISTS = {
@@ -989,7 +941,7 @@ const TrackSheet = (() => {
       </div>`;
   }
   function open(name, i, trigger) {
-    if (typeof ytR !== 'undefined' && ytR && on) player.pauseVideo();   // one soundtrack at a time
+    if (typeof ytR !== 'undefined' && ytR && on) player.pauseVideo();
     render(name, i);
     Sheets.open(dlg, trigger);
     $('[data-close]', dlg).focus();
@@ -1008,14 +960,13 @@ const TrackSheet = (() => {
     if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
     if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
   });
-  // silence the video the moment closing starts, then remove it
   dlg._onClosing = () => { const f = $('iframe', body); if (f) f.src = 'about:blank'; };
-  dlg.addEventListener('close', () => { if (!dlg.open) body.innerHTML = ''; });   // skip if it was reopened meanwhile
+  dlg.addEventListener('close', () => { if (!dlg.open) body.innerHTML = ''; });
   const grid = $('#bmGrid');
   if (grid) grid.addEventListener('click', e => {
     const b = e.target.closest('.bm-card'); if (!b) return;
     const t = BEFORE[+b.dataset.i];
-    if (hasLyrics(t)) { playTrack(t); pbtn.focus({ preventScroll: true }); }   // straight to the synced-lyrics player
+    if (hasLyrics(t)) { playTrack(t); pbtn.focus({ preventScroll: true }); }
     else open('before', +b.dataset.i, b);
   });
   const det = $('#siDetails');
@@ -1023,7 +974,6 @@ const TrackSheet = (() => {
   return { open };
 })();
 
-/* Chapter III · contributor details */
 (() => {
   const dlg = $('#personSheet'), body = $('#psBody'), box = $('#crList');
   const groups = DATA.credits || [];
@@ -1048,7 +998,6 @@ const TrackSheet = (() => {
   });
 })();
 
-/* ═══ TIDE — chapter navigation: a wave covers the screen, the page moves underneath ═══ */
 const Tide = (() => {
   const el = $('#tide'), num = $('#tideNum'), ttl = $('#tideTitle');
   let busy = false;
@@ -1080,7 +1029,6 @@ const Tide = (() => {
   return { go };
 })();
 
-/* Chapter menu (small screens) */
 (() => {
   const btn = $('#menuBtn'), menu = $('#menu'); if (!btn || !menu) return;
   btn.setAttribute('aria-expanded', 'false');
@@ -1088,7 +1036,6 @@ const Tide = (() => {
   menu.addEventListener('close', () => btn.setAttribute('aria-expanded', 'false'));
 })();
 
-/* Opened by double-click (file://)? YouTube refuses to play there, so the lyrics can't sync — say how to fix it */
 (() => {
   const n = $('#fileNote'); if (!n || location.protocol !== 'file:') return;
   const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Hide';
@@ -1096,18 +1043,14 @@ const Tide = (() => {
   n.appendChild(b); n.hidden = false;
 })();
 
-/* Reminder while placeholders are visible */
 (() => {
   const n = $('#editNote'); if (!n || !SHOW_PH) return;
   const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Hide';
   b.addEventListener('click', () => { n.hidden = true; });
   n.appendChild(b); n.hidden = false;
 })();
-
-/* ═══ ONE LOOP FOR EVERYTHING ═══ */
 (function loop(now) {
   requestAnimationFrame(loop);
-  // nothing behind an open sheet or menu is visible, so the sea and reflections rest
   if (document.hidden || root.classList.contains('has-sheet')) return;
   ticks.forEach(fn => fn(now));
 })(performance.now());
