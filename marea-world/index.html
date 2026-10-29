@@ -16,8 +16,6 @@
 <link rel="preload" as="image" href="assets/images/marea-emblem.webp">
 <link rel="stylesheet" href="css/style.css?v=6">
 <script>
-/* Runs before first paint. The intro curtain only exists when JS runs,
-   and a 6s safety net lifts it even if the main script fails. */
 (function (d) {
   var r = d.documentElement;
   r.className = 'js is-loading';
@@ -32,12 +30,10 @@
 <a class="skip" href="#main">Skip to content</a>
 <p class="file-note" id="fileNote" hidden>This page is open as a file, so YouTube won’t play and the lyrics can’t sync. In this folder run <code>python -m http.server 8000</code>, then open <code>http://localhost:8000</code>.</p>
 
-<!-- ═══ ATMOSPHERE ═══ -->
 <div class="sky" id="sky" aria-hidden="true"></div>
 <canvas id="sea" aria-hidden="true"></canvas>
 <div class="mist" id="mist" aria-hidden="true"><i></i><i></i></div>
 
-<!-- ═══ INTRO ═══ -->
 <div class="intro" id="intro" aria-hidden="true">
   <div class="intro-half intro-top">
     <img class="intro-mark" src="assets/images/marea-emblem.webp" alt="" width="656" height="374">
@@ -46,12 +42,10 @@
   <div class="intro-line"></div>
 </div>
 
-<!-- ═══ TIDE — chapter transition ═══ -->
 <div class="tide" id="tide" aria-hidden="true">
   <div class="tide-card"><span class="tide-num" id="tideNum"></span><span class="tide-title" id="tideTitle"></span></div>
 </div>
 
-<!-- ═══ NAV ═══ -->
 <header>
   <nav class="nav" id="nav" aria-label="Main">
     <a class="n-logo" href="#top">MAREA WORLD</a>
@@ -81,7 +75,6 @@
 
 <main id="main" tabindex="-1">
 
-<!-- ═══ HERO ═══ -->
 <section class="hero" id="top" aria-label="Introduction">
   <div class="hero-above">
     <p class="h-label">New Chapter by YVZID</p>
@@ -104,7 +97,6 @@
   <div class="h-scroll" aria-hidden="true"></div>
 </section>
 
-<!-- ═══ CHAPTER I · BEFORE MAREA ═══ -->
 <section class="sec before" id="before" aria-labelledby="before-title" tabindex="-1">
   <div class="wrap">
     <div class="chapter">
@@ -116,7 +108,6 @@
   </div>
 </section>
 
-<!-- Chapter I · MERRA FL3AM — player + synced lyrics -->
 <section class="sec single" id="single" aria-labelledby="single-title">
   <div class="wrap">
     <div class="single-head">
@@ -163,7 +154,6 @@
   </div>
 </section>
 
-<!-- ═══ CHAPTER II · MAREA ═══ -->
 <section class="sec band" id="marea" aria-labelledby="marea-title" tabindex="-1">
   <div class="wrap chapter center">
     <img class="band-emblem fade" src="assets/images/marea-emblem.webp" alt="" width="656" height="374" loading="lazy">
@@ -173,7 +163,6 @@
   </div>
 </section>
 
-<!-- Album tracklist -->
 <section class="sec tracks" id="tracklist" aria-labelledby="tracks-title">
   <div class="wrap">
     <div class="tracks-head">
@@ -211,7 +200,6 @@
   </div>
 </section>
 
-<!-- ═══ ARTIST ═══ -->
 <section class="sec artist" id="artist" aria-labelledby="artist-name" tabindex="-1">
   <div class="wrap ar-g">
     <div class="portrait fade" id="portrait">
@@ -247,7 +235,6 @@
   </div>
 </section>
 
-<!-- ═══ CHAPTER III · THE PEOPLE BEHIND MAREA ═══ -->
 <section class="sec credits" id="credits" aria-labelledby="credits-title" tabindex="-1">
   <div class="wrap">
     <div class="chapter center">
@@ -262,7 +249,6 @@
   </div>
 </section>
 
-<!-- ═══ NOTIFY ═══ -->
 <section class="sec notify" id="notify" aria-labelledby="notify-title" tabindex="-1">
   <div class="wrap">
     <p class="kicker fade">Stay Connected</p>
@@ -285,7 +271,6 @@
 
 <footer>&copy; 2026 YVZID — MAREA WORLD</footer>
 
-<!-- ═══ DETAIL SHEETS ═══ -->
 <dialog class="sheet" id="trackSheet" aria-labelledby="tsTitle">
   <button class="sheet-close pressable" type="button" data-close>Close</button>
   <div class="sheet-in" id="tsBody"></div>
