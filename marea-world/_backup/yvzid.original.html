@@ -26,7 +26,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px}
 
-/* ═══ REVEAL ═══ */
 .rv{opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.23,1,.32,1)}
 .rv.s{opacity:1;transform:translateY(0)}
 .rvl{opacity:0;transform:translateX(-40px);transition:all .7s cubic-bezier(.23,1,.32,1)}
@@ -34,7 +33,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
 .rvr{opacity:0;transform:translateX(40px);transition:all .7s cubic-bezier(.23,1,.32,1)}
 .rvr.s{opacity:1;transform:translateX(0)}
 
-/* ═══ NAV ═══ */
 nav{
   position:fixed;top:0;left:0;right:0;z-index:50;
   padding:20px 40px;display:flex;justify-content:space-between;align-items:center;
@@ -59,7 +57,6 @@ nav.solid{background:rgba(6,4,9,0.96);backdrop-filter:blur(16px);padding:14px 40
 }
 .n-links a:hover::after{transform:scaleX(1)}
 
-/* ═══ HERO ═══ */
 .hero{
   position:relative;height:100vh;min-height:600px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -138,12 +135,10 @@ nav.solid{background:rgba(6,4,9,0.96);backdrop-filter:blur(16px);padding:14px 40
 .h-scroll-line{width:1px;height:40px;margin:0 auto;background:linear-gradient(to bottom,var(--accent),transparent);animation:scP 2.5s ease-in-out infinite}
 @keyframes scP{0%,100%{opacity:.2;height:30px}50%{opacity:.8;height:48px}}
 
-/* ═══ SECTION ═══ */
 section{padding:110px 40px;position:relative}
 .s-tag{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.45em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
 .s-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4.5vw,3.2rem);letter-spacing:.04em;line-height:1;margin-bottom:36px}
 
-/* ═══ SINGLE ═══ */
 .single{background:var(--bg2)}
 .sg{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:56% 44%;gap:32px;align-items:start}
 
@@ -162,7 +157,6 @@ section{padding:110px 40px;position:relative}
 }
 .si-desc{font-size:.85rem;color:var(--dim);line-height:1.7;font-weight:300;max-width:460px}
 
-/* VISUALIZER */
 .vz{display:flex;align-items:flex-end;gap:2px;height:28px;margin-top:12px}
 .vz-b{width:3px;border-radius:1.5px;background:var(--accent);height:3px}
 .vz.on .vz-b{animation:vzB .5s ease-in-out infinite alternate}
@@ -186,7 +180,6 @@ section{padding:110px 40px;position:relative}
 .pb-bg{flex:1;height:3px;background:rgba(255,255,255,.05);border-radius:3px;cursor:pointer;position:relative}
 .pb-f{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--warm));border-radius:3px;transition:width .1s linear}
 
-/* LYRICS */
 .lp{
   max-height:480px;overflow-y:auto;padding:6px 20px 50px;scroll-behavior:smooth;
   mask-image:linear-gradient(to bottom,black 0%,black 88%,transparent 100%);
@@ -208,7 +201,6 @@ section{padding:110px 40px;position:relative}
 }
 .ll.p{opacity:.07}
 
-/* ═══ TRACKLIST ═══ */
 .tl-sec{background:var(--bg)}
 .tl-grid{max-width:860px;margin:0 auto}
 .ti{
@@ -247,12 +239,10 @@ section{padding:110px 40px;position:relative}
 }
 .ti.lk:hover .ti-hint{max-height:24px;margin-top:3px}
 
-/* NOW PLAYING */
 .ti.np{background:rgba(201,37,45,.03)}
 .ti.np .ti-n{color:var(--accent)}
 .ti.np::after{opacity:1}
 
-/* ═══ ARTIST ═══ */
 .ar-sec{background:var(--bg2)}
 .ar-g{max-width:1060px;margin:0 auto;display:grid;grid-template-columns:320px 1fr;gap:60px;align-items:center}
 .ar-vis{position:relative}
@@ -282,7 +272,6 @@ section{padding:110px 40px;position:relative}
 }
 .ar-a:hover{border-color:var(--accent);color:var(--accent)}
 
-/* ═══ NOTIFY ═══ */
 .noti{background:var(--bg);text-align:center;padding:110px 40px;position:relative}
 .noti::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:50px;background:linear-gradient(to bottom,transparent,rgba(201,37,45,.15))}
 .noti-t{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,5vw,3.2rem);letter-spacing:.05em;margin-bottom:8px}
@@ -303,7 +292,6 @@ footer{
   font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.2em;color:var(--dim2);text-transform:uppercase;
 }
 
-/* ═══ MOBILE ═══ */
 @media(max-width:860px){
   nav{padding:14px 18px}.n-links{gap:16px}.n-links a{font-size:.55rem;letter-spacing:.12em}
   section{padding:80px 18px}
@@ -334,7 +322,6 @@ footer{
   </div>
 </nav>
 
-<!-- ═══ HERO ═══ -->
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-ov"></div>
@@ -361,7 +348,6 @@ footer{
   <div class="h-scroll"><div class="h-scroll-line"></div></div>
 </section>
 
-<!-- ═══ SINGLE ═══ -->
 <section class="single" id="single">
   <div class="s-tag rv">Lead Single — Out Now</div>
   <div class="sg">
@@ -389,7 +375,6 @@ footer{
   </div>
 </section>
 
-<!-- ═══ TRACKLIST ═══ -->
 <section class="tl-sec" id="tracklist">
   <div class="s-tag rv">Album</div>
   <div class="s-title rv">MAREA WORLD</div>
@@ -437,7 +422,6 @@ footer{
   </div>
 </section>
 
-<!-- ═══ ARTIST ═══ -->
 <section class="ar-sec" id="artist">
   <div class="ar-g">
     <div class="ar-vis rvl">
@@ -468,7 +452,6 @@ footer{
   </div>
 </section>
 
-<!-- ═══ NOTIFY ═══ -->
 <section class="noti">
   <div class="s-tag rv">Stay Connected</div>
   <div class="noti-t rv">GET NOTIFIED</div>
@@ -486,7 +469,6 @@ footer{
 <footer>&copy; 2026 YVZID — MAREA WORLD</footer>
 
 <script>
-// ═══ PARTICLES ═══
 const hpW=document.getElementById('hpW');
 for(let i=0;i<16;i++){
   const p=document.createElement('div');p.className='hpt';
@@ -494,7 +476,6 @@ for(let i=0;i<16;i++){
   hpW.appendChild(p);
 }
 
-// ═══ COUNTDOWN (Sept 15 2026) ═══
 const rel=new Date('2026-09-15T00:00:00').getTime();
 function updCD(){
   const d=rel-Date.now();if(d<0)return;
@@ -505,14 +486,11 @@ function updCD(){
 }
 updCD();setInterval(updCD,1000);
 
-// ═══ REVEAL ON SCROLL ═══
 const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('s');io.unobserve(e.target)}})},{threshold:0.12});
 document.querySelectorAll('.rv,.rvl,.rvr').forEach(el=>io.observe(el));
 
-// ═══ NAV ═══
 window.addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('solid',scrollY>60)});
 
-// ═══ VISUALIZER ═══
 const vz=document.getElementById('vz');
 for(let i=0;i<18;i++){
   const b=document.createElement('div');b.className='vz-b';
@@ -522,7 +500,6 @@ for(let i=0;i<18;i++){
   vz.appendChild(b);
 }
 
-// ═══ LYRICS ═══
 const D=[
 [9,"Bghina n9at3o lb7our"],[11,"Ymkn l3icha tzyan"],[13.5,"Chno makan mor sour"],[15,"Nrj3 nzour merra fl3am"],
 [19,"Mabghitch nkhlik lour"],[21,"Rak m3aya machi nkhlik ghir f soura"],[24,"Kayswloni mabghitch ngoul"],[26,"Bo7dha f 9albi mais khliha mstoura"],
@@ -543,7 +520,6 @@ const D=[
 const ls=document.getElementById('ls');
 D.forEach(([_,t],i)=>{const d=document.createElement('div');d.className='ll';d.id='l'+i;d.textContent=t;ls.appendChild(d)});
 
-// ═══ YOUTUBE ═══
 let player=null,on=false,cur=-1,tid=null,ytR=false;
 const sc=document.createElement('script');sc.src='https://www.youtube.com/iframe_api';document.head.appendChild(sc);
 window.onYouTubeIframeAPIReady=function(){
